@@ -1,6 +1,5 @@
 import re
 
-
 class KeyWordBase:
     lis= [10,10,10]
     def SplitSentences(inStr):
@@ -11,6 +10,10 @@ class KeyWordBase:
             if(keyword in sentence):
                 keysen.append(sentence)
         return keysen;
+
+
+
+
 
 #Culture
 #Cuture = ['Mrs\.']
