@@ -3,7 +3,8 @@ import re
 class KeyWordBase:
     lis= [10,10,10]
     def SplitSentences(inStr):
-        return re.split(r'(?<!\w\.\w.)(?<!\.\s[a-z])(?<![A-Z][a-z]\.)(?<!Mrs\.)(?<=\.|\?|\!)\s' , inStr)
+        return re.split(r'(?<![A-Z].[A-Z])(?<![A-Z].[a-z])(?<![a-z].[a-z])(?<!\.\s[a-z])(?<=\.|\?|\!)' , inStr)
+        #return re.split(r'(?<!\w\.\w.)(?<!\.\s[a-z])(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s' , inStr)
     def KeywordSectence(inarray, keyword): 
         keysen = []
         for sentence in inarray:

@@ -1,6 +1,7 @@
 from enum import Enum
 from selenium import webdriver
 from keywordBase import KeyWordBase
+import xml.etree.ElementTree as xmlapi
 
 #Please Make Sure installed driver
 class DrvBase(Enum) :
@@ -9,6 +10,12 @@ class DrvBase(Enum) :
     Edge = 2
     _IE = 3
     Opera = 4
+
+#Please Make Sure installed driver
+class Format(Enum) :
+    HTML_BASIC = 0
+    XML = 1
+    JSON = 2
 
 class FullTextBase : 
     #Create Driver Connection
@@ -45,6 +52,23 @@ class FullTextBase :
         except Exception as ex:
             print("GetSentencesByClassName GetException => {}".format(ex))
         return Sents,keySents
+    def GetSentencesBytagsName(driver,tagname,keyword,pageformat : Format):
+        paragraph = ""
+        Sents = []
+        keySents = []
+        if(pageformat == Format.XML) :
+            element = xmlapi.fromstring(driver.page_source)
+            try :
+                #Get Spefic Element
+                for ele in element.iter(tagname) :
+                        paragraph += ele.text
+                #Split Sentences
+                Sents = KeyWordBase.SplitSentences(paragraph)
+                #Choose Sentences By Keyword
+                keySents = KeyWordBase.KeywordSectence(Sents,keyword)
+            except Exception as ex:
+                print("GetSentencesByClassName GetException => {}".format(ex))
+            return Sents,keySents
 
         
 
