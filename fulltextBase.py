@@ -1,7 +1,10 @@
 from enum import Enum
 from selenium import webdriver
 from keywordBase import KeyWordBase
+from keywordBase import KeyWordMode
 import xml.etree.ElementTree as xmlapi
+from bs4 import BeautifulSoup
+import json
 
 #Please Make Sure installed driver
 class DrvBase(Enum) :
@@ -52,7 +55,7 @@ class FullTextBase :
         except Exception as ex:
             print("GetSentencesByClassName GetException => {}".format(ex))
         return Sents,keySents
-    def GetSentencesBytagsName(driver,tagname,keyword,pageformat : Format):
+    def GetSentencesBytagsName(driver,tagname,keyword,pageformat : Format,keywordMode : KeyWordMode):
         paragraph = ""
         Sents = []
         keySents = []
@@ -63,49 +66,42 @@ class FullTextBase :
                 for ele in element.iter(tagname) :
                         paragraph += ele.text
                 #Split Sentences
-                Sents = KeyWordBase.SplitSentences(paragraph)
+                Sent = KeyWordBase.SplitSentences(paragraph)
+                for se in Sent :
+                        if(se is not None) :
+                            if(se[:1] == ' ') :
+                                se =  se[1:]                           
+                            if(len(se)>2) :
+                                Sents.append(se)
                 #Choose Sentences By Keyword
-                keySents = KeyWordBase.KeywordSectence(Sents,keyword)
+                keySents = KeyWordBase.KeywordSectence(Sents,keyword,keywordMode)
+            except Exception as ex:
+                print("GetSentencesBytagsName GetException => {}".format(ex))
+            return Sents,keySents
+        elif(pageformat == Format.JSON) : 
+            element = BeautifulSoup(driver.page_source)
+            try :
+                #Get Spefic Element
+                pars = json.loads(element.text)
+                for par in pars :
+                    paragraph = par[tagname]
+                    paragraph = paragraph.replace("\n➡️ ","")
+                    paragraph = paragraph.replace("\n","")
+                    sent = KeyWordBase.SplitSentences(paragraph)
+                    for se in sent :
+                        if(se is not None) :
+                            if(se[:1] == ' ') :
+                                se =  se[1:]
+                            if(se[:1] == '\"') :
+                                se =  se[1:]                                
+                            if(len(se)>2) :
+                                Sents.append(se)
+                #Choose Sentences By Keyword
+                keySents = KeyWordBase.KeywordSectence(Sents,keyword,keywordMode)
             except Exception as ex:
                 print("GetSentencesByClassName GetException => {}".format(ex))
             return Sents,keySents
-
-        
-
-
-
-
-#from selenium.webdriver.common.keys import Keys
-#from selenium.webdriver.support.ui import WebDriverWait
-#from selenium.webdriver.support import expected_conditions as EC
-#from selenium.webdriver.common.by import By
-
-#url = input('Give The URL : ')
-#driver = webdriver.Chrome()
-#driver.get("file:///D:/Master%20Degree/Lesson/web%20crawler/jof/index.html?format=json")
-#driver.get(url)
-
-#try:
-    #Wait Web Open
-    #WebDriverWait(driver, 20).until(
-    #        EC.presence_of_element_located((By.ID, "about"))
-    #        )
-    #Get Spefic Element
-    #element = driver.find_element_by_class_name("full.margin_top_20")
-    #Split Sentences
-    #list = KeyWordBase.SplitSentences(element.text)
-    #Choose Sentences By Keyword
-    #list = KeyWordBase.KeywordSectence(list,"tempor")
-#except Exception as e:
-    #print(e)
-    #quit();
-#driver.quit()
-
-
-# 傳入字串
-#element.send_keys("Selenium Python")
-#element.send_keys(Keys.ENTER)
-
-
-#button = driver.find_element_by_name("btnK")
-#button.click()
+    def GetSentenceStatices(inSentce: str) :
+        charnum = len(inSentce)
+        words = KeyWordBase.SplitWords(inSentce)
+        return words,len(words),charnum
