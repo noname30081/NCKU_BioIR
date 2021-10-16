@@ -59,12 +59,14 @@ class FullTextBase :
         paragraph = ""
         Sents = []
         keySents = []
+        charlen = 0
         if(pageformat == Format.XML) :
             element = xmlapi.fromstring(driver.page_source)
             try :
                 #Get Spefic Element
                 for ele in element.iter(tagname) :
                         paragraph += ele.text
+                charlen = len(paragraph)
                 #Split Sentences
                 Sent = KeyWordBase.SplitSentences(paragraph)
                 for se in Sent :
@@ -77,7 +79,7 @@ class FullTextBase :
                 keySents = KeyWordBase.KeywordSectence(Sents,keyword,keywordMode)
             except Exception as ex:
                 print("GetSentencesBytagsName GetException => {}".format(ex))
-            return Sents,keySents
+            return Sents,keySents,charlen
         elif(pageformat == Format.JSON) : 
             element = BeautifulSoup(driver.page_source)
             try :
@@ -85,6 +87,7 @@ class FullTextBase :
                 pars = json.loads(element.text)
                 for par in pars :
                     paragraph = par[tagname]
+                    charlen += len(paragraph)
                     paragraph = paragraph.replace("\n➡️ ","")
                     paragraph = paragraph.replace("\n","")
                     sent = KeyWordBase.SplitSentences(paragraph)
@@ -100,7 +103,7 @@ class FullTextBase :
                 keySents = KeyWordBase.KeywordSectence(Sents,keyword,keywordMode)
             except Exception as ex:
                 print("GetSentencesByClassName GetException => {}".format(ex))
-            return Sents,keySents
+            return Sents,keySents,charlen
     def GetSentenceStatices(inSentce: str) :
         charnum = len(inSentce)
         words = KeyWordBase.SplitWords(inSentce)

@@ -35,7 +35,7 @@ def main():
         #url = "file:///D:/Master Degree/Lesson/web crawler/HW1/Testing/test6.json"
 
         if(check == url) :
-            Sents,keysents = FullTextBase.GetSentencesBytagsName(driver,TagName,KeyWord,fileforemate,searchmode)
+            Sents,keysents,chall = FullTextBase.GetSentencesBytagsName(driver,TagName,KeyWord,fileforemate,searchmode)
             #Sents,keysents = FullTextBase.GetSentencesBytagsName(driver,"Title","COVID-19",Format.XML)
             #Sents,keysents = FullTextBase.GetSentencesBytagsName(driver,"AbstractText","COVID-19",Format.XML)
             #Sents,keysents = FullTextBase.GetSentencesBytagsName(driver,"tweet_text","in",Format.JSON,KeyWordMode.CONTAINS)
@@ -43,10 +43,13 @@ def main():
             print("Match keyword {} [{}/{}] :\n{}\n".format(KeyWord,len(keysents),len(Sents), keysents))
             for sent in keysents :
                 words,wordsnum,charnum = FullTextBase.GetSentenceStatices(sent)
-                print("{} : {} words {} chars".format(sent,wordsnum,charnum))            
-            #for sent in Sents :
-                #words,wordsnum,charnum = FullTextBase.GetSentenceStatices(sent)
-                #print("{} words {} chars".format(wordsnum,charnum))
+                print("{} : {} words {} chars".format(sent,wordsnum,charnum))      
+            parawordsum,paracharsum = 0,0      
+            for sent in Sents :
+                words,wordsnum,charnum = FullTextBase.GetSentenceStatices(sent)
+                parawordsum += wordsnum
+                paracharsum += charnum
+            print("paragraph {} words {} chars".format(parawordsum,paracharsum))
         else :
             print("Fail to Create Driver [{}]".format(drvbase))
         print("endjob")

@@ -27,16 +27,16 @@ class KeyWordBase:
                    keysen.append(sentence) 
         return keysen;
     def SplitWords(inStr):
-        rgx = re.compile("([\w][\w'-]*\w)")   
+        rgx = re.compile("([\w]*[\w'-]*\w)")   
         words = rgx.findall(inStr)
         wordsOut = []
         rgx = re.compile("([^0-9])")
         for word in words :
-            if (len(rgx.findall(word)) > 0) :
-                wordsOut.append(word)
+            #if (len(rgx.findall(word)) > 0) :
+            wordsOut.append(word)
         return wordsOut
     def SplitSGelement(inStr):
-        rgx = re.compile("([\w][\w'-]*\w)")
+        rgx = re.compile("([\w]*[\w'-]*\w)")
         return rgx.findall(inStr)
     
 
