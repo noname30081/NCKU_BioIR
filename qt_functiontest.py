@@ -130,13 +130,37 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.Target_Sdata,self.Target_Sents,chall = SearchEngine.ParaGraphByTag(engine,tagname,form)
         print(self.Target_Sdata)
     def btn_ATC_query_Click(self) : 
-        match,cssformat = SearchEngine.CompareArticles(engine,self.Source_Sdata,self.Target_Sdata,MapMode.Paragraph,None)
+        match = False
+        cssformat = ''
+        setting = None
+        if(self.rbt_ATC_Cheat.isChecked()) :
+            match,cssformat = SearchEngine.CompareArticles(engine,self.Source_Sdata,self.Target_Sdata,MapMode.Paragraph,setting)
+        elif(self.rbt_ATC_CharCheck.isChecked()) :
+            if(self.cb_ATC_Char_IgnoreSpace.isChecked()) : 
+                if(setting is None) :
+                    setting = Setting.SKIP_SPACE
+                else :
+                    setting |= Setting.SKIP_SPACE
+            if(self.cb_ATC_Char_IgnoreWardUL.isChecked()) : 
+                if(setting is None) :
+                    setting = Setting.SKIP_WORD_UL      
+                else :          
+                    setting |= Setting.SKIP_WORD_UL
+            match,cssformat = SearchEngine.CompareArticles(engine,self.Source_Sdata,self.Target_Sdata,MapMode.char,setting)
+        elif(self.rbt_ATC_WardCheck.isChecked()) :
+            if(self.cb_ATC_Word_IgnoreWardUL.isChecked()) : 
+                if(setting is None) :
+                    setting = Setting.SKIP_WORD_UL
+                else :
+                    setting |= Setting.SKIP_WORD_UL
+            match,cssformat = SearchEngine.CompareArticles(engine,self.Source_Sdata,self.Target_Sdata,MapMode.Ward,setting)            
         strColor = '<span style="margin-right:12px;color:white">{}</span>'.format(cssformat)
         font = QFont("Microsoft JhengHei",11,11,False)
         self.txt_ATC_Monitor.setFont(font)
         self.txt_ATC_Monitor.setHtml(strColor)
         self.txt_ATC_Monitor.setStyleSheet("background-color:black")
         return    
+    
 
 if __name__ == '__main__':
     import sys    
