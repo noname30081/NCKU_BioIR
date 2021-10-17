@@ -73,7 +73,7 @@ class FullTextBase :
                         if(se is not None) :
                             if(se[:1] == ' ') :
                                 se =  se[1:]                           
-                            if(len(se)>2) :
+                            if(len(se)>2) : 
                                 Sents.append(se)
                 #Choose Sentences By Keyword
                 keySents = KeyWordBase.KeywordSectence(Sents,keyword,keywordMode)
@@ -103,8 +103,53 @@ class FullTextBase :
                 keySents = KeyWordBase.KeywordSectence(Sents,keyword,keywordMode)
             except Exception as ex:
                 print("GetSentencesByClassName GetException => {}".format(ex))
-            return Sents,keySents,charlen
+            return Sents,keySents,charlen        
     def GetSentenceStatices(inSentce: str) :
         charnum = len(inSentce)
         words = KeyWordBase.SplitWords(inSentce)
         return words,len(words),charnum
+    def GetParagraphBytagsName(driver,tagname,pageformat : Format):
+        paragraph = ""
+        Sents = []
+        charlen = 0
+        if(pageformat == Format.XML) :
+            element = xmlapi.fromstring(driver.page_source)
+            try :
+                #Get Spefic Element
+                for ele in element.iter(tagname) :
+                        paragraph += ele.text
+                charlen = len(paragraph)
+                #Split Sentences
+                Sent = KeyWordBase.SplitSentences(paragraph)
+                for se in Sent :
+                        if(se is not None) :
+                            if(se[:1] == ' ') :
+                                se =  se[1:]                           
+                            if(len(se)>2) :
+                                Sents.append(se)
+            except Exception as ex:
+                print("GetSentencesBytagsName GetException => {}".format(ex))
+            return paragraph,Sents,charlen
+        elif(pageformat == Format.JSON) : 
+            element = BeautifulSoup(driver.page_source)
+            try :
+                #Get Spefic Element
+                pars = json.loads(element.text)
+                for par in pars :
+                    paragraph = par[tagname]
+                    charlen += len(paragraph)
+                    paragraph = paragraph.replace("\n➡️ ","")
+                    paragraph = paragraph.replace("\n","")
+                    #Split Sentences
+                    sent = KeyWordBase.SplitSentences(paragraph)
+                    for se in sent :
+                        if(se is not None) :
+                            if(se[:1] == ' ') :
+                                se =  se[1:]
+                            if(se[:1] == '\"') :
+                                se =  se[1:]                                
+                            if(len(se)>2) :
+                                Sents.append(se)
+            except Exception as ex:
+                print("GetSentencesByClassName GetException => {}".format(ex))
+            return paragraph,Sents,charlen

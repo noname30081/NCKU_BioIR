@@ -447,6 +447,9 @@
        <property name="text">
         <string>全比對</string>
        </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
       </widget>
       <widget class="QRadioButton" name="rbt_ATC_CharCheck">
        <property name="geometry">
@@ -531,24 +534,11 @@
        <property name="title">
         <string/>
        </property>
-       <widget class="QCheckBox" name="cb_ATC_Ward_IgnoreSpace">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>10</y>
-          <width>73</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>忽略空白</string>
-        </property>
-       </widget>
        <widget class="QCheckBox" name="cb_ATC_Word_IgnoreWardUL">
         <property name="geometry">
          <rect>
           <x>20</x>
-          <y>30</y>
+          <y>10</y>
           <width>81</width>
           <height>16</height>
          </rect>

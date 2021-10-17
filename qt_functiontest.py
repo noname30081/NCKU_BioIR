@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from ArticleCompare import MapMode, Setting
 
 import gui.Ui_SearchQt as ui
 from SearchEngine import SearchEngine as engine
@@ -25,6 +26,11 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.rbt_ATC_Cheat.clicked.connect(self.rbt_ATC_Cheat_click)
         self.rbt_ATC_CharCheck.clicked.connect(self.rbt_ATC_CharCheck_click)
         self.rbt_ATC_WardCheck.clicked.connect(self.rbt_ATC_WordCheck_click)
+        self.btn_ATC_GetRoot1.clicked.connect(self.btn_ATC_GetRoot1_click)
+        self.btn_ATC_GetRoot2.clicked.connect(self.btn_ATC_GetRoot2_click)   
+        self.TV_Root_2.clicked.connect(self.TV_Root2_Click)
+        self.TV_Root_3.clicked.connect(self.TV_Root3_Click)  
+        self.btn_ATC_query.clicked.connect(self.btn_ATC_query_Click)
     #region <WH1>
     def btn_SetRoot_Click(self) :
         directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
@@ -64,7 +70,6 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.textEdit.setHtml(strColor)
         self.textEdit.setStyleSheet("background-color:black")
         self.lbl_MSens.setText(str(len(keysents)))
-    #endregion
     def SentencesBrKeyWords(self, sent , keywords ) :
         strOut = ''
         for sen in sent :
@@ -72,6 +77,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
                 sen = sen.replace(kw,'<span style="background-color:white;color:black">{}</span>'.format(kw))
             strOut+='{}<br><br>'.format(sen)
         return strOut
+    #endregion
     def rbt_ATC_Cheat_click(self) :
         self.gb_ATC_charMode.setEnabled(False)
         self.gb_ATC_wordMode.setEnabled(False)
@@ -81,7 +87,56 @@ class Main(QMainWindow, ui.Ui_MainWindow):
     def rbt_ATC_WordCheck_click(self) :
         self.gb_ATC_charMode.setEnabled(False)
         self.gb_ATC_wordMode.setEnabled(True)                
-
+    def btn_ATC_GetRoot1_click(self) :
+        directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
+        self.txt_ATC_Root1.setText(directory)
+        model = QFileSystemModel()
+        model.setRootPath(directory)
+        model.setFilter(QDir.Files | QDir.Dirs | QDir.NoDotDot)
+        idx = model.index(directory)
+        self.TV_Root_2.setModel(model)
+        self.TV_Root_2.setRootIndex(idx)        
+    def btn_ATC_GetRoot2_click(self) :
+        directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
+        self.txt_ATC_Root2.setText(directory)
+        model = QFileSystemModel()
+        model.setRootPath(directory)
+        model.setFilter(QDir.Files | QDir.Dirs | QDir.NoDotDot)
+        idx = model.index(directory)
+        self.TV_Root_3.setModel(model)
+        self.TV_Root_3.setRootIndex(idx)     
+    ATC_SRootPath = ''
+    ATC_TRootPath = ''
+    Source_Sdata = ''
+    Source_Sents = []
+    Target_Sdata = ''
+    Target_Sents = []
+    def TV_Root2_Click(self,Qmodelidx) :
+        model = (QFileSystemModel)(self.TV_Root_2.model()) 
+        self.ATC_SRootPath = model.filePath(Qmodelidx)
+        SearchEngine.LoadSource(engine,self.ATC_SRootPath,LoadMode.Local)
+        tagname = 'AbstractText'
+        form = Format.XML
+        if(self.ATC_SRootPath[-4:] == 'json') : tagname = 'tweet_text';form = Format.JSON;       
+        self.Source_Sdata,self.Source_Sents,chall = SearchEngine.ParaGraphByTag(engine,tagname,form)
+        print(self.Source_Sdata)
+    def TV_Root3_Click(self,Qmodelidx) :
+        model = (QFileSystemModel)(self.TV_Root_3.model()) 
+        self.ATC_TRootPath = model.filePath(Qmodelidx)
+        SearchEngine.LoadSource(engine,self.ATC_TRootPath,LoadMode.Local)
+        tagname = 'AbstractText'
+        form = Format.XML
+        if(self.ATC_TRootPath[-4:] == 'json') : tagname = 'tweet_text';form = Format.JSON;       
+        self.Target_Sdata,self.Target_Sents,chall = SearchEngine.ParaGraphByTag(engine,tagname,form)
+        print(self.Target_Sdata)
+    def btn_ATC_query_Click(self) : 
+        match,cssformat = SearchEngine.CompareArticles(engine,self.Source_Sdata,self.Target_Sdata,MapMode.Paragraph,None)
+        strColor = '<span style="margin-right:12px;color:white">{}</span>'.format(cssformat)
+        font = QFont("Microsoft JhengHei",11,11,False)
+        self.txt_ATC_Monitor.setFont(font)
+        self.txt_ATC_Monitor.setHtml(strColor)
+        self.txt_ATC_Monitor.setStyleSheet("background-color:black")
+        return    
 
 if __name__ == '__main__':
     import sys    
