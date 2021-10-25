@@ -12,6 +12,10 @@ from SearchEngine import LoadMode
 from fulltextBase import Format
 from SearchEngine import SearchEngine 
 
+from LoadData import LoadData
+
+import glob
+
 class Main(QMainWindow, ui.Ui_MainWindow):
     bb = ''
     def __init__(self):
@@ -19,6 +23,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
          self.setupUi(self)
          self.Delegent_Static_SingleSlot()
          SearchEngine.StartEngine(engine)
+    #Qt Form to Python Method
     def Delegent_Static_SingleSlot(self) :
         self.btn_SetRoot.clicked.connect(self.btn_SetRoot_Click)
         self.TV_Root.clicked.connect(self.TV_Root_Click)
@@ -31,6 +36,9 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.TV_Root_2.clicked.connect(self.TV_Root2_Click)
         self.TV_Root_3.clicked.connect(self.TV_Root3_Click)  
         self.btn_ATC_query.clicked.connect(self.btn_ATC_query_Click)
+        self.btn_HW2_Root.clicked.connect(self.btn_HW2_Root_Click)
+        self.lineEdit.returnPressed.connect(self.LineEditreturnPressed)
+        self.HS_IDX_TotalNum.valueChanged.connect(self.HS_IDX_TotalNum_valueChanged)
     #region <WH1>
     def btn_SetRoot_Click(self) :
         directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
@@ -78,6 +86,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
             strOut+='{}<br><br>'.format(sen)
         return strOut
     #endregion
+    #region <WH1 - Addition Work>
     def rbt_ATC_Cheat_click(self) :
         self.gb_ATC_charMode.setEnabled(False)
         self.gb_ATC_wordMode.setEnabled(False)
@@ -160,7 +169,47 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.txt_ATC_Monitor.setHtml(strColor)
         self.txt_ATC_Monitor.setStyleSheet("background-color:black")
         return    
-    
+    #endregion
+    #region <HW2>
+    csvfiles = []
+    MAX = 2048
+    def btn_HW2_Root_Click(self) :
+        #LoadData.GetParagraphicByCsvTag(r'D:/Master Degree/Lesson/web crawler/HW2/hw2_data-20211023T150823Z-001/hw2_data/1.csv','title')
+        directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
+        self.txt_IDX_Root.setText(directory)
+        files = glob.glob(r'{}/{}'.format(directory,'*.csv'))
+        i = 0
+        for file in files :
+            files[i] = file.replace('\\','/')
+            i+=1
+        if len(files) == 0 :
+            self.HS_IDX_TotalNum.setEnabled(False)
+            self.lineEdit.setEnabled(False)
+            return
+        self.csvfiles = files
+        self.MAX = len(files)
+        self.HS_IDX_TotalNum.setMaximum(self.MAX)
+        self.HS_IDX_TotalNum.setEnabled(True)
+        self.lineEdit.setEnabled(True)
+        tags = LoadData.GetTags(files[0])
+        self.cb_IDX_tagname.clear()
+        self.cb_IDX_tagname.addItems(tags)
+        self.cb_IDX_tagname.setEnabled(True)
+        return
+    def LineEditreturnPressed(self):
+        try :
+            count = int(self.lineEdit.text())
+            if count < 1 :
+                count = 1
+            elif count > self.MAX :
+                count = self.MAX
+            self.HS_IDX_TotalNum.setValue(count)
+            self.lineEdit.setText(str(count))
+        except Exception as ex:
+            self.lineEdit.setText('1')
+    def HS_IDX_TotalNum_valueChanged(self,value):
+        self.lineEdit.setText(str(value))
+    #endregion
 
 if __name__ == '__main__':
     import sys    
