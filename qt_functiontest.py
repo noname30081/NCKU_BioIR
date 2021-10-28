@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtChart import *
 from ArticleCompare import MapMode, Setting
 
 import gui.Ui_SearchQt as ui
@@ -13,8 +14,12 @@ from fulltextBase import Format
 from SearchEngine import SearchEngine 
 
 from LoadData import LoadData
+from LoadData import LoadData as ld
 
 import glob
+import pandas as pd
+
+import time, threading
 
 class Main(QMainWindow, ui.Ui_MainWindow):
     bb = ''
@@ -171,6 +176,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         return    
     #endregion
     #region <HW2>
+    dataset = pd.DataFrame([], columns=[])
     csvfiles = []
     MAX = 2048
     def btn_HW2_Root_Click(self) :
@@ -187,14 +193,23 @@ class Main(QMainWindow, ui.Ui_MainWindow):
             self.lineEdit.setEnabled(False)
             return
         self.csvfiles = files
-        self.MAX = len(files)
-        self.HS_IDX_TotalNum.setMaximum(self.MAX)
         self.HS_IDX_TotalNum.setEnabled(True)
         self.lineEdit.setEnabled(True)
         tags = LoadData.GetTags(files[0])
         self.cb_IDX_tagname.clear()
         self.cb_IDX_tagname.addItems(tags)
         self.cb_IDX_tagname.setEnabled(True)
+        self.cb_IDX_tagname.setCurrentIndex(1)
+
+        Columns = tags
+        rows = []
+        for file in files :
+            Rows = LoadData.GetRowsByCsvTag(file)
+            for row in Rows :
+                rows.append(row)
+        self.dataset = pd.DataFrame(rows, columns=Columns)
+        self.MAX = len(rows)
+        self.HS_IDX_TotalNum.setMaximum(self.MAX)
         return
     def LineEditreturnPressed(self):
         try :
@@ -203,12 +218,33 @@ class Main(QMainWindow, ui.Ui_MainWindow):
                 count = 1
             elif count > self.MAX :
                 count = self.MAX
+            va = self.HS_IDX_TotalNum.value()
             self.HS_IDX_TotalNum.setValue(count)
             self.lineEdit.setText(str(count))
+            if(va == count) :
+                t = threading.Thread(target=self.DataSetting, args=(count,), name='DataSetting')
+                #self.DataSetting(count)
+                t.start()
+                #t.join()
         except Exception as ex:
             self.lineEdit.setText('1')
     def HS_IDX_TotalNum_valueChanged(self,value):
         self.lineEdit.setText(str(value))
+        t = threading.Thread(target=self.DataSetting, args=(value,), name='DataSetting')
+        #self.DataSetting(count)
+        t.start()
+        #t.join()
+    def DataSetting(self,count : int) :
+        paras = self.dataset.loc[0:count-1,self.cb_IDX_tagname.currentText()]
+        wrsort,worddic,Index = LoadData.ParagraphicByList(paras)
+        self.tb_IDX_show.setColumnCount(2)
+        header = ['Word','Sum']
+        self.tb_IDX_show.setHorizontalHeaderLabels(header)
+        rows = len(wrsort)
+        self.tb_IDX_show.setRowCount(rows)
+        for i in range(rows) :
+            self.tb_IDX_show.setItem(i,0,QtWidgets.QTableWidgetItem(str(wrsort[i][0])))
+            self.tb_IDX_show.setItem(i,1,QtWidgets.QTableWidgetItem(str(wrsort[i][1])))       
     #endregion
 
 if __name__ == '__main__':
