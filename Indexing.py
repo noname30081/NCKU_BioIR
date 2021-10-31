@@ -10,6 +10,8 @@ from numba import generated_jit,types
 from numba.core.decorators import jit_module
 from numba.core.types.misc import Object
 
+from stop_words import get_stop_words
+
 mutWord = threading.Lock()
 mutStem = threading.Lock()
 mutPort = threading.Lock()
@@ -20,7 +22,7 @@ class Indexing(Object):
         Index = {}
         #for ParaGraphic in ParaGraphics :
         return
-    def ParagraphicByList_(self,listdata):
+    def ParagraphicByList_(self,listdata,stopwordpkg = False):
         self.WordSort = []
         self.WordDic = {}
         self.StemsSort = []
@@ -31,7 +33,7 @@ class Indexing(Object):
         i = 0     
         for data in listdata :
             Words = KeyWordBase.SplitWords(data)
-            thread = threading.Thread(target=self.IndexWords, args=(self,Words,i,), name='IndexWords{}'.format(i))
+            thread = threading.Thread(target=self.IndexWords, args=(self,Words,i,stopwordpkg,), name='IndexWords{}'.format(i))
             threads.append(thread)
             threads[i].start()
             i += 1
@@ -41,12 +43,16 @@ class Indexing(Object):
         self.WordSort = sorted(self.WordDic.items(),reverse=True, key=lambda x:x[1])
         self.StemsSort = sorted(self.Stems.items(),reverse=True, key=lambda x:x[1])
         return self.WordSort,self.WordDic,self.Index,self.StemsSort,self.Stems,self.PortDic
-    def IndexWords(self,Words,inddex) :       
+    def IndexWords(self,Words,inddex,stopwordpkg = False) :       
+        stoplist = get_stop_words('en')
         for Word in Words :
+            if stoplist.__contains__(Word) and stopwordpkg:
+                continue
+
             Stem = PS.stem(PS,Word)
 
             mutPort.acquire()
-            if self.PortDic.__contains__(Word) != True :                
+            if self.PortDic.__contains__(Word) != True and Stem != Word:                
                 self.PortDic.setdefault(Word,Stem)
             mutPort.release()
 

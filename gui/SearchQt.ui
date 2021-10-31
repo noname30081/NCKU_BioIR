@@ -1009,10 +1009,13 @@
       </property>
      </widget>
      <widget class="QCheckBox" name="cb_IDX_editDis">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>500</x>
-        <y>90</y>
+        <y>120</y>
         <width>101</width>
         <height>16</height>
        </rect>
@@ -1045,6 +1048,45 @@
       </property>
       <property name="text">
        <string>?</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cb_IDX_sppkg">
+      <property name="geometry">
+       <rect>
+        <x>500</x>
+        <y>90</y>
+        <width>111</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+       </font>
+      </property>
+      <property name="text">
+       <string>Stop-Word PKG</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btn_IDX_Indexing">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>670</x>
+        <y>80</y>
+        <width>31</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+       </font>
+      </property>
+      <property name="text">
+       <string>IDX</string>
       </property>
      </widget>
     </widget>
