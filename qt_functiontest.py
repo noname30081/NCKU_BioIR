@@ -6,12 +6,16 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtChart import *
 from ArticleCompare import MapMode, Setting
+from PyQt5 import QtChart
+from PyQt5 import QtWidgets
 
 import gui.Ui_SearchQt as ui
+import gui.Ui_Indexing_note as idxnote
 from SearchEngine import SearchEngine as engine
 from SearchEngine import LoadMode
 from fulltextBase import Format
 from SearchEngine import SearchEngine 
+from Indexing import Indexing as idxing
 
 from LoadData import LoadData
 from LoadData import LoadData as ld
@@ -19,14 +23,17 @@ from LoadData import LoadData as ld
 import glob
 import pandas as pd
 
-import time, threading
+import math
+
 
 class Main(QMainWindow, ui.Ui_MainWindow):
     bb = ''
+    lay = QtWidgets.QHBoxLayout()
     def __init__(self):
          super().__init__()
          self.setupUi(self)
          self.Delegent_Static_SingleSlot()
+         self.QCharWidget()
          SearchEngine.StartEngine(engine)
     #Qt Form to Python Method
     def Delegent_Static_SingleSlot(self) :
@@ -44,6 +51,19 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.btn_HW2_Root.clicked.connect(self.btn_HW2_Root_Click)
         self.lineEdit.returnPressed.connect(self.LineEditreturnPressed)
         self.HS_IDX_TotalNum.valueChanged.connect(self.HS_IDX_TotalNum_valueChanged)
+        self.HS_IDX_swrate.valueChanged.connect(self.HS_IDX_swrate_valueChanged)
+        self.HS_IDX_ifrate.valueChanged.connect(self.HS_IDX_ifrate_valueChanged)
+        self.btn_IDX_PorterNote.clicked.connect(self.btn_IDX_PorterNote_clicked)
+    def QCharWidget(self) :
+        self.serials = QLineSeries()
+        self.Chart = QChart()     
+        self.Chart.addSeries(self.serials)
+        self.chartview = QtChart.QChartView(self.Chart)
+        self.lay = QtWidgets.QHBoxLayout(self.wg_IDX_chart)
+        self.lay.setContentsMargins(0, 0, 0, 0)
+        self.lay.addWidget(self.chartview)
+        
+        return
     #region <WH1>
     def btn_SetRoot_Click(self) :
         directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
@@ -179,8 +199,12 @@ class Main(QMainWindow, ui.Ui_MainWindow):
     dataset = pd.DataFrame([], columns=[])
     csvfiles = []
     MAX = 2048
+    
     def btn_HW2_Root_Click(self) :
-        #LoadData.GetParagraphicByCsvTag(r'D:/Master Degree/Lesson/web crawler/HW2/hw2_data-20211023T150823Z-001/hw2_data/1.csv','title')
+        #說明視窗
+        self.idxnote = IDX_Sub()
+        self.btn_IDX_PorterNote.setEnabled(True)
+        #Load csv
         directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
         self.txt_IDX_Root.setText(directory)
         files = glob.glob(r'{}/{}'.format(directory,'*.csv'))
@@ -222,30 +246,93 @@ class Main(QMainWindow, ui.Ui_MainWindow):
             self.HS_IDX_TotalNum.setValue(count)
             self.lineEdit.setText(str(count))
             if(va == count) :
-                t = threading.Thread(target=self.DataSetting, args=(count,), name='DataSetting')
-                #self.DataSetting(count)
-                t.start()
-                #t.join()
+                self.DataSetting(count)
         except Exception as ex:
             self.lineEdit.setText('1')
     def HS_IDX_TotalNum_valueChanged(self,value):
         self.lineEdit.setText(str(value))
-        t = threading.Thread(target=self.DataSetting, args=(value,), name='DataSetting')
-        #self.DataSetting(count)
-        t.start()
-        #t.join()
+        self.DataSetting(value)
+    ft = False
     def DataSetting(self,count : int) :
         paras = self.dataset.loc[0:count-1,self.cb_IDX_tagname.currentText()]
-        wrsort,worddic,Index = LoadData.ParagraphicByList(paras)
+        wrsort,worddic,Index,StemsSort,Stems,PortDic = idxing.ParagraphicByList_(idxing,paras)
         self.tb_IDX_show.setColumnCount(2)
         header = ['Word','Sum']
         self.tb_IDX_show.setHorizontalHeaderLabels(header)
-        rows = len(wrsort)
-        self.tb_IDX_show.setRowCount(rows)
+        sortedDic = []
+        sumwds = 0
+        if self.cb_Porter.isChecked() :
+            sortedDic = StemsSort
+        else :
+            sortedDic = wrsort
+        sumwd = [i[1] for i in sortedDic]
+        sumwds = sum(sumwd)
+        rows = len(sortedDic)
+        self.tb_IDX_show.setRowCount(int(rows))    
+        ser = QLineSeries()
+        serName = ''
+        if self.cb_Porter.isChecked():
+            serName = 'Po-'    
+        serName += 'Words[{}-{}%-{}%]'.format(str(count),str(self.HS_IDX_swrate.value()),str(self.HS_IDX_ifrate.value()))
+        ser.setName(serName)
+        su = 0
+        j=0
         for i in range(rows) :
-            self.tb_IDX_show.setItem(i,0,QtWidgets.QTableWidgetItem(str(wrsort[i][0])))
-            self.tb_IDX_show.setItem(i,1,QtWidgets.QTableWidgetItem(str(wrsort[i][1])))       
+            su += int(sortedDic[i][1])
+            if su >= int(sumwds*(1-self.HS_IDX_ifrate.value()*0.01)) :
+                break
+            if su <=int(sumwds*self.HS_IDX_swrate.value()*0.01) and self.HS_IDX_swrate.value() != 0:
+                j = i
+                continue
+            self.tb_IDX_show.setItem(int(i-j-1),0,QtWidgets.QTableWidgetItem(str(sortedDic[i][0])))
+            self.tb_IDX_show.setItem(int(i-j-1),1,QtWidgets.QTableWidgetItem(str(sortedDic[i][1])))   
+            if self.cb_IDX_doLn.isChecked() :
+                ser.append(math.log(i),math.log(sortedDic[i][1]))
+            elif self.cb_IDX_doLog10.isChecked() :
+                ser.append(math.log10(i),math.log10(sortedDic[i][1]))
+            else :
+                ser.append(i,sortedDic[i][1])
+        
+        if self.cb_CC.isChecked() != True : 
+            self.Chart.removeAllSeries()
+        self.Chart.addSeries(ser)
+        self.Chart.setAnimationOptions(QChart.SeriesAnimations)
+
+        self.Chart.legend().setVisible(True)
+        self.Chart.legend().setAlignment(Qt.AlignBottom)
+        font = self.Chart.legend().font()
+        font.setPointSize(18)
+        self.Chart.legend().setFont(font)
+        self.Chart.legend().setFont(QFont('Calibri'))
+        self.Chart.setTitle('Zipf')
+
+        x_Aix = QValueAxis()
+        x_Aix.setRange(0,rows)
+        x_Aix.setTickCount(rows)
+        x_Aix.setMinorTickCount(0)
+        x_Aix.setLabelFormat('%d')
+        
+        y_Aix = QValueAxis()
+        y_Aix.setRange(0,wrsort[i][1])
+        y_Aix.setTickCount(100)
+        y_Aix.setMinorTickCount(0)
+        y_Aix.setLabelFormat('%d')
+
+        self.chartview.chart().setAxisX(x_Aix)
+        self.chartview.chart().setAxisX(y_Aix)
+        self.chartview.chart().createDefaultAxes()
+    def HS_IDX_swrate_valueChanged(self,value):
+        self.txt_IDX_swrate.setText('{}%'.format(str(value)))
+    def HS_IDX_ifrate_valueChanged(self,value):
+        self.txt_IDX_ifrate.setText('{}%'.format(str(value)))
+    def btn_IDX_PorterNote_clicked(self) :
+        self.idxnote.show()
     #endregion
+
+class IDX_Sub(QMainWindow, idxnote.Ui_MW_IDX_Note):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
 
 if __name__ == '__main__':
     import sys    
