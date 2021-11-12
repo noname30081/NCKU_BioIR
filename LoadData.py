@@ -1,6 +1,8 @@
 import  csv
 from keywordBase import KeyWordBase
 
+
+
 class LoadData (object):
     def __init__(self) :
         return
@@ -69,3 +71,14 @@ class LoadData (object):
             i += 1
         WordSort = sorted(WordDic.items(),reverse=True, key=lambda x:x[1])
         return WordSort,WordDic,Index
+    def LoadCsvToDataset(files : list,tags : list):
+        return
+    con = False
+    def MongoConeect(self,dbname,collection) :
+        if self.con == False :
+            self.con = True;
+        else :
+            mydic = {"test1":"test","Test2":[1,2,3],"Test3":{"subTest1":10,"subTest2":11}}
+            re = self.mytestco.insert_one(mydic)
+            print(re)          
+        #myclient.close()

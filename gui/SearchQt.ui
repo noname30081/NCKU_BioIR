@@ -1089,6 +1089,27 @@
        <string>IDX</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="btn_IDX_test">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>670</x>
+        <y>120</y>
+        <width>31</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

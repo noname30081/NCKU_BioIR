@@ -78,28 +78,31 @@ class Indexing(Object):
                 self.Index.setdefault(Word.lower(),[])
                 self.Index[Word.lower()].append(str(inddex))
             mutIdx.release()        
-
-
-            #Words = KeyWordBase.SplitWords(data)
-            #for Word in Words :
-            #    Stem = PS.stem(PS,Word)
-
-            #    if PortDic.__contains__(Word) != True :
-            #        PortDic.setdefault(Word,Stem)
-
-            #    if Stems.__contains__(Stem) :
-            #        Stems[Stem] += 1
-            #    else :
-            #        Stems.setdefault(Stem,1)
-
-            #    if WordDic.__contains__(Word) :
-            #        WordDic[Word] += 1
-            #    else :
-            #        WordDic.setdefault(Word,1)
-
-            #    if Index.__contains__(Word) :
-            #        if str(i) not in Index[Word] :
-            #            Index[Word].append(str(i))
-            #    else :
-            #        Index.setdefault(Word,[])
-            #        Index[Word].append(str(i))
+    def splitAndstemWords(paragraph) :
+        #Tokenize
+        Words = KeyWordBase.SplitWords(paragraph)
+        #Get Stopwords
+        stoplist = get_stop_words('en')
+        stemlist = {}
+        stems = {}
+        wlist = {}
+        for Word in Words :
+            #Statics Words
+            if wlist.__contains__(Word.lower()) :
+                wlist[Word.lower()] += 1
+            else :
+                wlist.setdefault(Word.lower(),1)           
+            #filte Stop Words
+            if stoplist.__contains__(Word):
+                continue
+            #Do stemming
+            Stem = PS.stem(PS,Word)                 
+            #Save the stemed words
+            if stemlist.__contains__(Word) != True and Stem != Word:                
+                stemlist.setdefault(Word,Stem)        
+            #Statics Stem Words      
+            if stems.__contains__(Stem.lower()) :
+                stems[Stem.lower()] += 1
+            else :
+                stems.setdefault(Stem.lower(),1)
+        return wlist,stems,stemlist

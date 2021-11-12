@@ -22,12 +22,19 @@ from LoadData import LoadData as ld
 
 import glob
 import pandas as pd
+from keywordBase import KeyWordBase
+import pymongo as pymong
+from DataSet import DataSet
+from DataSet import DataSet as ds
 
 import math
 
 
 class Main(QMainWindow, ui.Ui_MainWindow):
     bb = ''
+    myclient = DataSet('localhost','27017')
+    #myclient = pymong.MongoClient("mongodb://localhost:27017/")
+    #mydb = myclient["local"]
     lay = QtWidgets.QHBoxLayout()
     def __init__(self):
          super().__init__()
@@ -35,6 +42,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
          self.Delegent_Static_SingleSlot()
          self.QCharWidget()
          SearchEngine.StartEngine(engine)
+         self.DataBase()
     #Qt Form to Python Method
     def Delegent_Static_SingleSlot(self) :
         self.btn_SetRoot.clicked.connect(self.btn_SetRoot_Click)
@@ -55,6 +63,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.HS_IDX_ifrate.valueChanged.connect(self.HS_IDX_ifrate_valueChanged)
         self.btn_IDX_PorterNote.clicked.connect(self.btn_IDX_PorterNote_clicked)
         self.btn_IDX_Indexing.clicked.connect(self.btn_IDX_Indexing_clicked)
+        self.btn_IDX_test.clicked.connect(self.btn_IDX_test_clicked)
     def QCharWidget(self) :
         self.serials = QLineSeries()
         self.Chart = QChart()     
@@ -62,9 +71,14 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.chartview = QtChart.QChartView(self.Chart)
         self.lay = QtWidgets.QHBoxLayout(self.wg_IDX_chart)
         self.lay.setContentsMargins(0, 0, 0, 0)
-        self.lay.addWidget(self.chartview)
-        
+        self.lay.addWidget(self.chartview)      
         return
+    def DataBase(self) : 
+        self.myclient.LinktoDB("local")
+        self.myclient.LinktoCollection("local",'testColl')
+        self.myclient.LinktoCollection("local",'BioIR_covid19')
+        self.myclient.LinktoCollection("local",'BioIR_covid19_index')
+        self.myclient.LinktoCollection("local",'BioIR_LoadData')
     #region <WH1>
     def btn_SetRoot_Click(self) :
         directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
@@ -232,6 +246,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
             Rows = LoadData.GetRowsByCsvTag(file)
             for row in Rows :
                 rows.append(row)
+                self.InsertDat(file,0,tags,row,'local','BioIR_covid19')
         self.dataset = pd.DataFrame(rows, columns=Columns)
         self.MAX = len(rows)
         self.HS_IDX_TotalNum.setMaximum(self.MAX)
@@ -352,6 +367,28 @@ class Main(QMainWindow, ui.Ui_MainWindow):
             self.idxnote.tb_IDX_show.setItem(int(i),0,QtWidgets.QTableWidgetItem(str(self.idxlist[i][0])))
             self.idxnote.tb_IDX_show.setItem(int(i),1,QtWidgets.QTableWidgetItem(str(sorted(self.idxlist[i][1] , key=lambda x:int(x)))))
         self.idxnote.show()
+    def btn_IDX_test_clicked(self) :
+        LoadData.MongoConeect(LoadData,'a','a')
+    #to Dataset
+    def InsertDat(self,sour,idx,tags,row,dbname,collection) :
+        Tags = {}
+        i = 0
+        for tag in tags :
+            if Tags.__contains__(tag) == False:
+                Tags.setdefault(tag,{})
+            if Tags[tag].__contains__('ORIG') == False :
+                Tags[tag].setdefault('ORIG',row[i])
+            wlist,stems,stemlist = idxing.splitAndstemWords(row[i])
+            if Tags[tag].__contains__('WORDS') == False :
+                Tags[tag].setdefault('WORDS',wlist)
+            if Tags[tag].__contains__('STEMS') == False :
+                Tags[tag].setdefault('STEMS',stems)      
+            i += 1
+        query = {}
+        idx = len(list(self.myclient.dbs['local']["Collections"]['BioIR_covid19'].find(query)))
+        dataInset = {"source":sour,"IDX":idx,"Tags":Tags}
+        #self.myclient.InsertData('local','BioIR_covid19',dataInset)
+        self.myclient.InsertData(dbname,collection,dataInset)
     #endregion
 
 class IDX_Sub(QMainWindow, idxnote.Ui_MW_IDX_Note):
