@@ -27,6 +27,17 @@ import pymongo as pymong
 from DataSet import DataSet
 from DataSet import DataSet as ds
 
+import tensorflow as tf
+import keras.backend as K
+from keras.models import Sequential
+from keras.layers import Dense, Embedding, Lambda
+from keras.preprocessing import text
+from keras.utils import np_utils
+from keras.preprocessing import sequence
+from IPython.display import SVG
+
+from Word2Vec import Word2Vec
+
 import math
 
 
@@ -368,7 +379,34 @@ class Main(QMainWindow, ui.Ui_MainWindow):
             self.idxnote.tb_IDX_show.setItem(int(i),1,QtWidgets.QTableWidgetItem(str(sorted(self.idxlist[i][1] , key=lambda x:int(x)))))
         self.idxnote.show()
     def btn_IDX_test_clicked(self) :
-        LoadData.MongoConeect(LoadData,'a','a')
+        #gg = list(self.myclient.dbs['local']["Collections"]['BioIR_covid19'].find({},no_cursor_timeout=True))
+        #Word2Vec.VectToken(Word2Vec,gg)
+        #Word2Vec.LoadModel(Word2Vec,gg)
+        gg = open(r'../pubmed_query/zoonoses_1000.txt', mode='r')
+        #Word2Vec.VectToken2(Word2Vec,gg.read(),'Cross-species transmission')
+        #Word2Vec.LoadModel2(Word2Vec,gg.read(),'Cross-species transmission')
+        #Word2Vec.SkipGram_Training_2(Word2Vec,gg.read(),'zoonoses')
+        Word2Vec.LoadModel3(Word2Vec,gg.read(),'zoonoses')
+        gg.close()
+    def generate_context_word_pairs(self,corpus, window_size, vocab_size):
+        context_length = window_size*2
+        for words in corpus:
+            sentence_length = len(words)
+            for index, word in enumerate(words):
+                context_words = []
+                label_word   = []            
+                start = index - window_size
+                end = index + window_size + 1
+                
+                context_words.append([words[i] 
+                                    for i in range(start, end) 
+                                    if 0 <= i < sentence_length 
+                                    and i != index])
+                label_word.append(word)
+
+                x = sequence.pad_sequences(context_words, maxlen=context_length)
+                y = np_utils.to_categorical(label_word, vocab_size)
+                yield (x, y)
     #to Dataset
     def InsertDat(self,sour,idx,tags,row,dbname,collection) :
         Tags = {}
