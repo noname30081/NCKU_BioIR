@@ -19,6 +19,7 @@ import pandas as pd
 import numpy as np
 
 from stop_words import get_stop_words
+from keywordBase import KeyWordBase
 
 class Word2Vec():
     def VectToken(self,paragraphics):
@@ -425,3 +426,15 @@ class Word2Vec():
                         for search_term in ['species', 'cov','sars','testing','disease']}
 
         print(similar_words) 
+    def PudmedStructive(self,paragraphics):
+        paragraphics = paragraphics.replace('BACKGROUND: ','')
+        paragraphics = paragraphics.replace('INTRODUCTION: ','')
+        paragraphics = paragraphics.replace('?\n','')
+        tx=paragraphics.split('\n')
+        parawordslist = []
+        i = 0
+        for tt in tx :
+            parawords = {'index':i,'sentences':KeyWordBase.SplitSentences(tt)}
+            parawordslist.append(parawords)
+            i=i+1
+        return parawordslist

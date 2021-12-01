@@ -11,6 +11,7 @@ from numba.core.decorators import jit_module
 from numba.core.types.misc import Object
 
 from stop_words import get_stop_words
+from keras.preprocessing import text
 
 mutWord = threading.Lock()
 mutStem = threading.Lock()
@@ -105,4 +106,37 @@ class Indexing(Object):
                 stems[Stem.lower()] += 1
             else :
                 stems.setdefault(Stem.lower(),1)
+        return wlist,stems,stemlist
+    def splitAndstemWordsByKeras(paragraph) :
+        #Tokenize
+        tokenizer = text.Tokenizer()
+        tokenizer.fit_on_texts([paragraph])
+        Words = tokenizer.word_index.keys()
+        #Get Stopwords
+        stoplist = get_stop_words('en')
+        stemlist = {}
+        stems = {}
+        wlist = {}
+        for Word in Words :
+            try :
+                #Statics Words
+                if wlist.__contains__(Word.lower()) :
+                    wlist[Word.lower()] += 1
+                else :
+                    wlist.setdefault(Word.lower(),1)           
+                #filte Stop Words
+                if stoplist.__contains__(Word):
+                    continue
+                #Do stemming
+                Stem = PS.stem(PS,Word)                 
+                #Save the stemed words
+                if stemlist.__contains__(Word) != True and Stem != Word:                
+                    stemlist.setdefault(Word,Stem)        
+                #Statics Stem Words      
+                if stems.__contains__(Stem.lower()) :
+                    stems[Stem.lower()] += 1
+                else :
+                    stems.setdefault(Stem.lower(),1)
+            except :
+                continue
         return wlist,stems,stemlist

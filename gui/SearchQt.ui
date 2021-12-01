@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_hw1">
      <attribute name="title">
@@ -1108,6 +1108,175 @@
       </property>
       <property name="text">
        <string/>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_hw3">
+     <attribute name="title">
+      <string>HW3</string>
+     </attribute>
+     <widget class="QLineEdit" name="txt_HW3_model">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>2</y>
+        <width>621</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btn_HW3_GetModel">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Get Model</string>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="tb_HW3_w2v">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>30</y>
+        <width>281</width>
+        <height>161</height>
+       </rect>
+      </property>
+      <property name="columnCount">
+       <number>0</number>
+      </property>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>85</number>
+      </attribute>
+     </widget>
+     <widget class="QLineEdit" name="txt_HW3_quarytxt">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>30</y>
+        <width>221</width>
+        <height>21</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_15">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>30</y>
+        <width>71</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>11</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Quary Text</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="txt_HW3_qNear">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>60</y>
+        <width>221</width>
+        <height>21</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="txt_HW3_result">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>200</y>
+        <width>621</width>
+        <height>401</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_16">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>180</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>11</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Content Sentences</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_HW3_add">
+     <attribute name="title">
+      <string>HW3-Add</string>
+     </attribute>
+     <widget class="QPushButton" name="btn_HW3_add_GetModel">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Get Model</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btn_HW3_cauTF">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Get TF</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btn_HW3_cauIDF">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>60</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Get IDF</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btn_HW3_TrainModel">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>90</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Train Model</string>
       </property>
      </widget>
     </widget>

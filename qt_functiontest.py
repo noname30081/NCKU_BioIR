@@ -75,6 +75,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.btn_IDX_PorterNote.clicked.connect(self.btn_IDX_PorterNote_clicked)
         self.btn_IDX_Indexing.clicked.connect(self.btn_IDX_Indexing_clicked)
         self.btn_IDX_test.clicked.connect(self.btn_IDX_test_clicked)
+        self.btn_HW3_add_GetModel.clicked.connect(self.btn_HW3_add_GetModel_clicked)
     def QCharWidget(self) :
         self.serials = QLineSeries()
         self.Chart = QChart()     
@@ -90,6 +91,8 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.myclient.LinktoCollection("local",'BioIR_covid19')
         self.myclient.LinktoCollection("local",'BioIR_covid19_index')
         self.myclient.LinktoCollection("local",'BioIR_LoadData')
+        self.myclient.LinktoCollection("local",'tf-idf')
+        self.myclient.LinktoCollection("local",'Atopic_dermatitis')
     #region <WH1>
     def btn_SetRoot_Click(self) :
         directory = QtWidgets.QFileDialog.getExistingDirectory(self,"Video Directory", QDir.currentPath());
@@ -387,7 +390,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         #Word2Vec.LoadModel2(Word2Vec,gg.read(),'Cross-species transmission')
         #Word2Vec.SkipGram_Training_2(Word2Vec,gg.read(),'zoonoses')
         Word2Vec.LoadModel3(Word2Vec,gg.read(),'zoonoses')
-        gg.close()
+        #gg.close()
     def generate_context_word_pairs(self,corpus, window_size, vocab_size):
         context_length = window_size*2
         for words in corpus:
@@ -423,10 +426,44 @@ class Main(QMainWindow, ui.Ui_MainWindow):
                 Tags[tag].setdefault('STEMS',stems)      
             i += 1
         query = {}
-        idx = len(list(self.myclient.dbs['local']["Collections"]['BioIR_covid19'].find(query)))
+        #idx = len(list(self.myclient.dbs['local']["Collections"]['BioIR_covid19'].find(query)))
+        idx = len(list(self.myclient.dbs['local']["Collections"][collection].find(query)))
         dataInset = {"source":sour,"IDX":idx,"Tags":Tags}
         #self.myclient.InsertData('local','BioIR_covid19',dataInset)
         self.myclient.InsertData(dbname,collection,dataInset)
+    #endregion
+    #region <HW3>
+    def btn_HW3_add_GetModel_clicked(self) :
+        source = r'../pubmed_query/Atopic dermatitis_250.txt'
+        txt = open(source, mode='r').read()
+        paralist = Word2Vec.PudmedStructive(Word2Vec,txt)
+        for para in paralist:
+            self.InsertDatPubmed(source,para,'local','Atopic_dermatitis')
+        pass
+    def InsertDatPubmed(self,sour,para,dbname,collection) :
+        Tags = {}
+        i = 0
+        paraIndex = int(para['index'])
+        sentIndex = 0
+        sentlist = para['sentences']      
+        for sent in sentlist :
+            if sent is None :
+                continue
+            if len(sent) < 5 :
+                continue
+            dataInset = {"source":sour,"ParaIndex":paraIndex}
+            query = {}
+            sentIndex = len(list(self.myclient.dbs['local']["Collections"][collection].find(query)))
+            if dataInset.__contains__('SentIndex') == False :
+                dataInset.setdefault('SentIndex',sentIndex)            
+            if dataInset.__contains__('ORIG') == False :
+                dataInset.setdefault('ORIG',sent)
+            wlist,stems,stemlist = idxing.splitAndstemWordsByKeras(sent)
+            if dataInset.__contains__('WORDS') == False :
+                dataInset.setdefault('WORDS',wlist)
+            if dataInset.__contains__('STEMS') == False :
+                dataInset.setdefault('STEMS',stems)      
+            self.myclient.InsertData(dbname,collection,dataInset)
     #endregion
 
 class IDX_Sub(QMainWindow, idxnote.Ui_MW_IDX_Note):
