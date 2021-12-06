@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>725</width>
-    <height>685</height>
+    <width>816</width>
+    <height>896</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>721</width>
-      <height>641</height>
+      <width>811</width>
+      <height>851</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -1120,7 +1120,7 @@
        <rect>
         <x>80</x>
         <y>2</y>
-        <width>621</width>
+        <width>721</width>
         <height>20</height>
        </rect>
       </property>
@@ -1143,9 +1143,17 @@
        <rect>
         <x>420</x>
         <y>30</y>
-        <width>281</width>
+        <width>381</width>
         <height>161</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
       <property name="columnCount">
        <number>0</number>
@@ -1155,12 +1163,15 @@
       </attribute>
      </widget>
      <widget class="QLineEdit" name="txt_HW3_quarytxt">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>150</x>
-        <y>30</y>
+        <y>110</y>
         <width>221</width>
-        <height>21</height>
+        <height>31</height>
        </rect>
       </property>
      </widget>
@@ -1187,10 +1198,18 @@
       <property name="geometry">
        <rect>
         <x>150</x>
-        <y>60</y>
+        <y>70</y>
         <width>221</width>
-        <height>21</height>
+        <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
      </widget>
      <widget class="QTextEdit" name="txt_HW3_result">
@@ -1198,9 +1217,17 @@
        <rect>
         <x>80</x>
         <y>200</y>
-        <width>621</width>
-        <height>401</height>
+        <width>721</width>
+        <height>631</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
      </widget>
      <widget class="QLabel" name="label_16">
@@ -1221,6 +1248,82 @@
       <property name="text">
        <string>Content Sentences</string>
       </property>
+     </widget>
+     <widget class="QComboBox" name="cb_HW3_quarytxt">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>30</y>
+        <width>221</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Calibri</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>140</y>
+        <width>331</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Rank</string>
+      </property>
+      <widget class="QRadioButton" name="rto_Paras">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>14</y>
+         <width>121</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Calibri</family>
+         <pointsize>11</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Paragraph tf-idf</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="rto_Sents">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>13</y>
+         <width>131</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Calibri</family>
+         <pointsize>11</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Sentences tf-idf</string>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_HW3_add">
@@ -1287,7 +1390,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>725</width>
+     <width>816</width>
      <height>21</height>
     </rect>
    </property>

@@ -1,3 +1,4 @@
+from operator import invert
 from re import split
 from xml.etree.ElementTree import XML
 from PyQt5 import QtWidgets
@@ -37,6 +38,7 @@ from keras.preprocessing import sequence
 from IPython.display import SVG
 
 from Word2Vec import Word2Vec
+from stop_words import get_stop_words
 
 import math
 
@@ -76,6 +78,12 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.btn_IDX_Indexing.clicked.connect(self.btn_IDX_Indexing_clicked)
         self.btn_IDX_test.clicked.connect(self.btn_IDX_test_clicked)
         self.btn_HW3_add_GetModel.clicked.connect(self.btn_HW3_add_GetModel_clicked)
+        self.btn_HW3_cauTF.clicked.connect(self.btn_HW3_cauTF_clicked)
+        self.btn_HW3_cauIDF.clicked.connect(self.btn_HW3_cauIDF_clicked)
+        self.btn_HW3_TrainModel.clicked.connect(self.btn_HW3_TrainModel_clicked)
+        self.cb_HW3_quarytxt.currentTextChanged.connect(self.cb_HW3_quarytxt_currentTextChanged)
+        self.tb_HW3_w2v.clicked.connect(self.tb_HW3_w2v_clicked)
+        self.txt_HW3_qNear.returnPressed.connect(self.txt_HW3_qNear_returnPressed)
     def QCharWidget(self) :
         self.serials = QLineSeries()
         self.Chart = QChart()     
@@ -385,12 +393,17 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         #gg = list(self.myclient.dbs['local']["Collections"]['BioIR_covid19'].find({},no_cursor_timeout=True))
         #Word2Vec.VectToken(Word2Vec,gg)
         #Word2Vec.LoadModel(Word2Vec,gg)
-        gg = open(r'../pubmed_query/zoonoses_1000.txt', mode='r')
+        #gg = open(r'../pubmed_query/zoonoses_1000.txt', mode='r')
         #Word2Vec.VectToken2(Word2Vec,gg.read(),'Cross-species transmission')
         #Word2Vec.LoadModel2(Word2Vec,gg.read(),'Cross-species transmission')
         #Word2Vec.SkipGram_Training_2(Word2Vec,gg.read(),'zoonoses')
-        Word2Vec.LoadModel3(Word2Vec,gg.read(),'zoonoses')
+        #Word2Vec.LoadModel3(Word2Vec,gg.read(),'zoonoses')
         #gg.close()
+
+        gg = open(r'../pubmed_query/Atopic dermatitis_250.txt', mode='r')
+        #Word2Vec.SkipGram_Training_2(Word2Vec,gg.read(),'Atopic_dermatitis')
+        Word2Vec.LoadModel3(Word2Vec,gg.read(),'Atopic_dermatitis')
+        gg.close()
     def generate_context_word_pairs(self,corpus, window_size, vocab_size):
         context_length = window_size*2
         for words in corpus:
@@ -464,6 +477,205 @@ class Main(QMainWindow, ui.Ui_MainWindow):
             if dataInset.__contains__('STEMS') == False :
                 dataInset.setdefault('STEMS',stems)      
             self.myclient.InsertData(dbname,collection,dataInset)
+    def btn_HW3_cauTF_clicked(self) :
+        myQuary = {'ParaIndex':0}
+        rt = self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({})
+        SumWords = {}
+        for duc in rt :
+            for key in duc['WORDS'].keys() :
+                if key in SumWords :
+                    SumWords[key] += duc['WORDS'][key]
+                else :
+                    SumWords.setdefault(key,duc['WORDS'][key])
+        
+        rt = self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({})
+        for duc in rt :
+            tfparas = list(self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({'ParaIndex':duc['ParaIndex']}))
+            tfnew = {}
+            for key in SumWords.keys() :
+                sumtemp = 0
+                for tfpara in tfparas:
+                    if key in tfpara['WORDS'] :
+                        sumtemp += tfpara['WORDS'][key]
+                if sumtemp != 0 :
+                    sumtemp = 1 + math.log(sumtemp)
+                tfnew.setdefault(key,sumtemp)
+            self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].update_one({'_id':duc['_id']},{'$set':{'tf_para':tfnew}})
+
+        rt = self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({})
+        for duc in rt :
+            tfparas = list(self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({'SentIndex':duc['SentIndex']}))
+            tfnew = {}
+            for key in SumWords.keys() :
+                sumtemp = 0
+                for tfpara in tfparas:
+                    if key in tfpara['WORDS'] :
+                        sumtemp += tfpara['WORDS'][key]
+                if sumtemp != 0 :
+                    sumtemp = 1 + math.log(sumtemp)
+                tfnew.setdefault(key,sumtemp)
+            self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].update_one({'_id':duc['_id']},{'$set':{'tf_sent':tfnew}})
+
+        rt = self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({})
+        for duc in rt :
+            tfparas = list(self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({'ParaIndex':duc['ParaIndex']}))
+            tfnew = {}
+            for key in SumWords.keys() :
+                sumtemp = 0
+                for tfpara in tfparas:
+                    if key in tfpara['WORDS'] :
+                        sumtemp += tfpara['WORDS'][key]
+                if sumtemp == 0:
+                    sumtemp = 0
+                else :
+                    sumtemp = math.log(SumWords[key]/sumtemp)
+                tfnew.setdefault(key,sumtemp)
+            self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].update_one({'_id':duc['_id']},{'$set':{'idf_para':tfnew}})
+
+        rt = self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({})
+        for duc in rt :
+            tfparas = list(self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({'SentIndex':duc['SentIndex']}))
+            tfnew = {}
+            for key in SumWords.keys() :
+                sumtemp = 0
+                for tfpara in tfparas:
+                    if key in tfpara['WORDS'] :
+                        sumtemp += tfpara['WORDS'][key]
+                if sumtemp == 0:
+                    sumtemp = 0
+                else :
+                    sumtemp = math.log(SumWords[key]/sumtemp)
+                tfnew.setdefault(key,sumtemp)
+            self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].update_one({'_id':duc['_id']},{'$set':{'idf_sent':tfnew}})
+        pass
+    def btn_HW3_cauIDF_clicked(self) :
+        rt = self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find({})
+        SumWords = {}
+        gg = open(r'../pubmed_query/Atopic dermatitis_250.txt', mode='r')
+        parag = gg.read()
+        gg.close()
+        for duc in rt :
+            for key in duc['WORDS'].keys() :
+                if key in SumWords :
+                    SumWords[key] += duc['WORDS'][key]
+                else :
+                    SumWords.setdefault(key,duc['WORDS'][key])        
+        self.labelDic = {}
+        labelMax = 40
+        count = 0
+        stoplist = get_stop_words('en')
+        sorted_ = sorted(SumWords.items(), key=lambda x:x[1],reverse=True)
+        #for key in SumWords.keys() :
+        for key in sorted_ :
+            if key[0] in stoplist :
+                continue
+            if len(key[0]) == 1 :
+                continue            
+            Exist = False
+            for labelkey in self.labelDic.keys() :
+                if key[0] in self.labelDic[labelkey] :
+                    Exist = True
+                    break
+            if Exist == False :    
+                isKey , smillar = Word2Vec.createLabel(Word2Vec,parag,key[0],'Atopic_dermatitis')
+                if isKey == False :
+                    continue
+                self.labelDic.setdefault(key[0],smillar)
+                count += 1
+            if count >= labelMax :
+                break
+        self.cb_HW3_quarytxt.addItems(self.labelDic.keys())
+        pass
+    def btn_HW3_TrainModel_clicked(self) :
+        pass
+    def cb_HW3_quarytxt_currentTextChanged(self,value) :
+        self.tb_HW3_w2v.clear()
+        self.tb_HW3_w2v.setColumnCount(2)
+        header = ['Word','Distance']
+        self.tb_HW3_w2v.setHorizontalHeaderLabels(header)
+        self.tb_HW3_w2v.setRowCount(len(self.labelDic[value].keys()))
+        i = 0
+        for key in self.labelDic[value].keys() :
+            self.tb_HW3_w2v.setItem(int(i),0,QtWidgets.QTableWidgetItem(str(key)))
+            self.tb_HW3_w2v.setItem(int(i),1,QtWidgets.QTableWidgetItem(str(self.labelDic[value][key])))   
+            i += 1   
+    def tb_HW3_w2v_clicked(self,item) :     
+        self.txt_HW3_qNear.setText(self.tb_HW3_w2v.item(item.row(),0).text())
+        print(self.tb_HW3_w2v.item(item.row(),0).text())
+    def txt_HW3_qNear_returnPressed(self) :
+        self.txt_HW3_result.clear()
+        myQuery = {'$or':[]}
+        for key in self.labelDic[self.cb_HW3_quarytxt.currentText()].keys() :
+            qu = {'WORDS.{}'.format(key):{'$gt':0}}
+            myQuery['$or'].append(qu)
+            #myQuery.setdefault('tf_para.{}'.format(key),'>0')
+        rt = self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find(myQuery)    
+        self.qre = list(rt)
+        print(len(self.qre))
+
+        ranklist = []
+        for ducs in self.qre :
+            ranking = {}
+            score_para = 0
+            score_sent = 0
+            for key in ducs['WORDS'].keys() :
+                if key == self.cb_HW3_quarytxt.currentText() :
+                    score_para += (ducs['tf_para'][key] * ducs['idf_para'][key])
+                    score_sent += (ducs['tf_sent'][key] * ducs['idf_sent'][key])
+                elif key == self.txt_HW3_qNear.text() :
+                    score_para += (ducs['tf_para'][key] * ducs['idf_para'][key])
+                    score_sent += (ducs['tf_sent'][key] * ducs['idf_sent'][key])
+                elif key in self.labelDic[self.cb_HW3_quarytxt.currentText()].keys() :
+                    score_para += math.pow(ducs['tf_para'][key] * ducs['idf_para'][key],2) / (len(ducs['WORDS'].keys()))
+                    score_sent += math.pow(ducs['tf_sent'][key] * ducs['idf_sent'][key],2) / (len(ducs['WORDS'].keys()))
+            ranking.setdefault('SentIndex',ducs['SentIndex'])
+            ranking.setdefault('Score_para',score_para)
+            ranking.setdefault('Score_sent',score_sent)
+            ranklist.append(ranking)
+        if self.rto_Paras.isChecked() :
+            ranklist.sort(key=lambda r:r['Score_para'] ,reverse=True)
+        else :
+            ranklist.sort(key=lambda r:r['Score_sent'] ,reverse=True)
+    
+        cssformat = ''
+        count = 0
+        for ran in ranklist :
+            myQuery = {'SentIndex' : ran['SentIndex']}
+            select = list(self.myclient.dbs['local']["Collections"]['Atopic_dermatitis'].find(myQuery))
+            css = ''
+            css += select[0]['ORIG']
+            for key in self.labelDic[self.cb_HW3_quarytxt.currentText()].keys() :
+                if len(key) == 1 :
+                    continue
+                if (key == self.cb_HW3_quarytxt.currentText()) or (key == self.txt_HW3_qNear.text()) :
+                    css = css.replace(' {} '.format(key),' <span style="background-color:yellow;color:black">{}</span> '.format(key))
+                    css = css.replace(' {}.'.format(key),' <span style="background-color:yellow;color:black">{}</span>.'.format(key))
+                    css = css.replace(' {}-'.format(key),' <span style="background-color:yellow;color:black">{}</span>-'.format(key))
+                    css = css.replace('-{} '.format(key),'-<span style="background-color:yellow;color:black">{}</span> '.format(key))
+                    css = css.replace('-{}-'.format(key),'-<span style="background-color:yellow;color:black">{}</span>-'.format(key))
+                    css = css.replace(' {},'.format(key),' <span style="background-color:yellow;color:black">{}</span>,'.format(key))
+                else :
+                    if(self.cb_HW3_quarytxt.currentText().__contains__(key) or self.txt_HW3_qNear.text().__contains__(key)) :
+                        continue
+                    css = css.replace(' {} '.format(key),' <span style="background-color:white;color:black">{}</span> '.format(key))
+                    css = css.replace(' {}.'.format(key),' <span style="background-color:white;color:black">{}</span>.'.format(key))
+                    css = css.replace(' {}-'.format(key),' <span style="background-color:white;color:black">{}</span>-'.format(key))
+                    css = css.replace('-{} '.format(key),'-<span style="background-color:white;color:black">{}</span> '.format(key))
+                    css = css.replace('-{}-'.format(key),'-<span style="background-color:white;color:black">{}</span>-'.format(key))
+                    css = css.replace(' {},'.format(key),' <span style="background-color:white;color:black">{}</span>,'.format(key))                    
+            css += ' Para Score : {} , Sent Score : {} , ParaIndex : {} , SentIndex{}.'.format(ran['Score_para'],ran['Score_sent'],select[0]['ParaIndex'],select[0]['SentIndex'])
+            css += '<br><br>'
+            cssformat += css
+            count += 1
+            if count >= 10 :
+                break;
+
+        strColor = '<span style="margin-right:12px;color:white">{}</span>'.format(cssformat)
+        font = QFont("Microsoft JhengHei",11,11,False)
+        self.txt_HW3_result.setFont(font)
+        self.txt_HW3_result.setHtml(strColor)
+        self.txt_HW3_result.setStyleSheet("background-color:black")
+        pass
     #endregion
 
 class IDX_Sub(QMainWindow, idxnote.Ui_MW_IDX_Note):

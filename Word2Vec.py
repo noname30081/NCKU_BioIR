@@ -305,8 +305,12 @@ class Word2Vec():
 
     def SkipGram_Training_2(self,paragraphics,keyword):  
         tokenizer = text.Tokenizer()
-        tx=paragraphics.split('\n')
         stoplist = get_stop_words('en')
+        for sp in stoplist :
+            paragraphics = paragraphics.lower().replace(' {} '.format(sp.lower()),'')
+            paragraphics = paragraphics.lower().replace(' {}.'.format(sp.lower()),'')
+            paragraphics = paragraphics.lower().replace('.{} '.format(sp.lower()),'')
+        tx=paragraphics.split('\n')     
         tokenizer.fit_on_texts(tx)
         word2id = tokenizer.word_index
         id2word = {v:k for k, v in word2id.items()}
@@ -317,15 +321,15 @@ class Word2Vec():
         wids = [[word2id[w] for w in text.text_to_word_sequence(doc)] for doc in tx]
 
         # generate skip-grams
-        skip_grams = [skipgrams(wid, vocabulary_size=vocab_size, window_size=10) for wid in wids]
+        skip_grams = [skipgrams(wid, vocabulary_size=vocab_size, window_size=20) for wid in wids]
 
         # view sample skip-grams
         pairs, labels = skip_grams[0][0], skip_grams[0][1]
-        for i in range(10):
-            print("({:s} ({:d}), {:s} ({:d})) -> {:d}".format(
-                id2word[pairs[i][0]], pairs[i][0], 
-                id2word[pairs[i][1]], pairs[i][1], 
-                labels[i])) 
+        #for i in range(10):
+        #    print("({:s} ({:d}), {:s} ({:d})) -> {:d}".format(
+        #        id2word[pairs[i][0]], pairs[i][0], 
+        #        id2word[pairs[i][1]], pairs[i][1], 
+        #        labels[i])) 
 
         input_target = Input((1,))
         input_context = Input((1,))
@@ -355,7 +359,7 @@ class Word2Vec():
         SVG(model_to_dot(model, show_shapes=True, show_layer_names=False, 
                         rankdir='TB').create(prog='dot', format='svg'))
         
-        for epoch in range(1, 10):
+        for epoch in range(1, 150):
             loss = 0
             for i, elem in enumerate(skip_grams):
                 try:
@@ -375,8 +379,11 @@ class Word2Vec():
 
     def LoadModel3(self,paragraphics,keyword):
         tokenizer = text.Tokenizer()
-        tx=paragraphics.split('\n')
         stoplist = get_stop_words('en')
+        for sp in stoplist :
+            paragraphics = paragraphics.replace(' {} '.format(sp),'')
+            paragraphics = paragraphics.replace(' {}.'.format(sp),'')
+        tx=paragraphics.split('\n')
         tokenizer.fit_on_texts(tx)
         word2id = tokenizer.word_index  
 
@@ -423,7 +430,7 @@ class Word2Vec():
 
         # view contextually similar words
         similar_words = {search_term: [id2word[idx] for idx in distance_matrix[word2id[search_term]-1].argsort()[0:10]+1] 
-                        for search_term in ['species', 'cov','sars','testing','disease']}
+                        for search_term in ['atopic', 'dermatitis','skin','disease']}
 
         print(similar_words) 
     def PudmedStructive(self,paragraphics):
@@ -438,3 +445,40 @@ class Word2Vec():
             parawordslist.append(parawords)
             i=i+1
         return parawordslist
+    def createLabel(self,paragraphics,word,keyword):
+        isKey = True
+        model = keras.models.load_model('../HW3/{}_sg.h5'.format(keyword))
+        weights = model.get_weights()[0]
+        weights = weights[1:]
+        
+        #print(weights.shape)
+
+        distance_matrix = euclidean_distances(weights)
+        #print(distance_matrix)
+        #print(distance_matrix.shape)
+
+        tokenizer = text.Tokenizer()
+        stoplist = get_stop_words('en')
+        for sp in stoplist :
+            paragraphics = paragraphics.lower().replace(' {} '.format(sp.lower()),'')
+            paragraphics = paragraphics.lower().replace(' {}.'.format(sp.lower()),'')
+            paragraphics = paragraphics.lower().replace('.{} '.format(sp.lower()),'')
+        tx=paragraphics.split('\n')     
+        tokenizer.fit_on_texts(tx)
+        word2id = tokenizer.word_index
+        id2word = {v:k for k, v in word2id.items()}
+        #print(pd.DataFrame(weights, index=list(id2word.values())[0:]).head(40))
+
+        similar_words = {}
+        try :
+            i = 0
+            #print(sorted(distance_matrix[word2id[word]-1]))
+            for idx in distance_matrix[word2id[word]-1].argsort()[0:20]+1 :
+                similar_words.setdefault(id2word[idx],sorted(distance_matrix[word2id[word]-1])[i])
+            #similar_words =  {id2word[idx] : weights[word2id[word]-1].argsort()[idx] for idx in distance_matrix[word2id[word]-1].argsort()[0:20]+1}
+                i += 1
+        except :
+            isKey = False
+        print('{} : {}'.format(word,similar_words)) 
+        return isKey,similar_words
+        
