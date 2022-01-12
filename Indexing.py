@@ -33,7 +33,7 @@ class Indexing(Object):
         threads = []
         i = 0     
         for data in listdata :
-            Words = KeyWordBase.SplitWords(data)
+            Words = KeyWordBase.SplitWords(data.lower())
             thread = threading.Thread(target=self.IndexWords, args=(self,Words,i,stopwordpkg,), name='IndexWords{}'.format(i))
             threads.append(thread)
             threads[i].start()

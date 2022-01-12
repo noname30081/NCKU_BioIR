@@ -1,3 +1,4 @@
+from codecs import StreamWriter
 from operator import invert
 from re import split
 from xml.etree.ElementTree import XML
@@ -41,6 +42,7 @@ from Word2Vec import Word2Vec
 from stop_words import get_stop_words
 
 import math
+import time
 
 
 class Main(QMainWindow, ui.Ui_MainWindow):
@@ -268,7 +270,7 @@ class Main(QMainWindow, ui.Ui_MainWindow):
             Rows = LoadData.GetRowsByCsvTag(file)
             for row in Rows :
                 rows.append(row)
-                self.InsertDat(file,0,tags,row,'local','BioIR_covid19')
+                #self.InsertDat(file,0,tags,row,'local','BioIR_covid19')
         self.dataset = pd.DataFrame(rows, columns=Columns)
         self.MAX = len(rows)
         self.HS_IDX_TotalNum.setMaximum(self.MAX)
@@ -400,10 +402,24 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         #Word2Vec.LoadModel3(Word2Vec,gg.read(),'zoonoses')
         #gg.close()
 
-        gg = open(r'../pubmed_query/Atopic dermatitis_250.txt', mode='r')
+        #gg = open(r'../pubmed_query/Atopic dermatitis_250.txt', mode='r')
         #Word2Vec.SkipGram_Training_2(Word2Vec,gg.read(),'Atopic_dermatitis')
-        Word2Vec.LoadModel3(Word2Vec,gg.read(),'Atopic_dermatitis')
-        gg.close()
+        #Word2Vec.LoadModel3(Word2Vec,gg.read(),'Atopic_dermatitis')
+        #gg.close()
+        rownum = self.tb_IDX_show.rowCount()
+        header = "{},{},{}\n".format("Idx","Word","Num")
+        wr = ""
+        for i in range(rownum) :
+            wr += "{},{},{}\n".format(i,self.tb_IDX_show.item(i,0).text() ,self.tb_IDX_show.item(i,1).text())
+        wr = header + wr
+
+        localtime = time.localtime()
+        result = time.strftime("%Y%m%d%I%M%S", localtime)
+
+        f = open(r'D:/Master Degree/Lesson/web crawler/Final/Dataset/statics/{}.csv'.format(result), mode='w')
+        f.write(wr)
+        f.close()
+        pass
     def generate_context_word_pairs(self,corpus, window_size, vocab_size):
         context_length = window_size*2
         for words in corpus:
@@ -447,12 +463,15 @@ class Main(QMainWindow, ui.Ui_MainWindow):
     #endregion
     #region <HW3>
     def btn_HW3_add_GetModel_clicked(self) :
+        '''
         source = r'../pubmed_query/Atopic dermatitis_250.txt'
         txt = open(source, mode='r').read()
         paralist = Word2Vec.PudmedStructive(Word2Vec,txt)
         for para in paralist:
             self.InsertDatPubmed(source,para,'local','Atopic_dermatitis')
         pass
+        '''
+
     def InsertDatPubmed(self,sour,para,dbname,collection) :
         Tags = {}
         i = 0
