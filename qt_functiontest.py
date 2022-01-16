@@ -44,6 +44,8 @@ from stop_words import get_stop_words
 import math
 import time
 
+import lib.final.api
+
 
 class Main(QMainWindow, ui.Ui_MainWindow):
     bb = ''
@@ -86,6 +88,9 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.cb_HW3_quarytxt.currentTextChanged.connect(self.cb_HW3_quarytxt_currentTextChanged)
         self.tb_HW3_w2v.clicked.connect(self.tb_HW3_w2v_clicked)
         self.txt_HW3_qNear.returnPressed.connect(self.txt_HW3_qNear_returnPressed)
+        self.btn_fin_test.clicked.connect(self.btn_fin_test_clicked)
+        self.tb_article_rank.clicked.connect(self.tb_article_rank_clicked)
+        self.btn_fin_subjectQ.clicked.connect(self.btn_fin_subjectQ_clicked)
     def QCharWidget(self) :
         self.serials = QLineSeries()
         self.Chart = QChart()     
@@ -94,6 +99,8 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.lay = QtWidgets.QHBoxLayout(self.wg_IDX_chart)
         self.lay.setContentsMargins(0, 0, 0, 0)
         self.lay.addWidget(self.chartview)      
+        header = ['Score','Title']
+        self.tb_article_rank.setHorizontalHeaderLabels(header)
         return
     def DataBase(self) : 
         self.myclient.LinktoDB("local")
@@ -463,14 +470,12 @@ class Main(QMainWindow, ui.Ui_MainWindow):
     #endregion
     #region <HW3>
     def btn_HW3_add_GetModel_clicked(self) :
-        '''
         source = r'../pubmed_query/Atopic dermatitis_250.txt'
         txt = open(source, mode='r').read()
         paralist = Word2Vec.PudmedStructive(Word2Vec,txt)
         for para in paralist:
             self.InsertDatPubmed(source,para,'local','Atopic_dermatitis')
         pass
-        '''
 
     def InsertDatPubmed(self,sour,para,dbname,collection) :
         Tags = {}
@@ -694,6 +699,57 @@ class Main(QMainWindow, ui.Ui_MainWindow):
         self.txt_HW3_result.setFont(font)
         self.txt_HW3_result.setHtml(strColor)
         self.txt_HW3_result.setStyleSheet("background-color:black")
+        pass
+    #endregion
+    #region <Final Project>
+    #SubjectX=''
+    sublist=[]
+    def btn_fin_test_clicked(self):
+        header = ['Score','Title']
+        self.tb_article_rank.setHorizontalHeaderLabels(header)
+        pass
+    def tb_article_rank_clicked(self,item):
+        try :
+            print("Current Title : {}".format(self.tb_article_rank.item(self.tb_article_rank.currentRow(),1).text()))
+            content = self.sublist[self.tb_article_rank.currentRow()][self.tb_article_rank.item(self.tb_article_rank.currentRow(),1).text()].content
+            #sesents = self.sublist[self.tb_article_rank.currentRow()][self.tb_article_rank.item(self.tb_article_rank.currentRow(),1).text()].sentence
+            #sesentssort = sorted(self.sesents.items(),reverse=True, key=lambda x:x[1])
+            self.txt_fin_articleDetail.setText(content)
+        except :
+            pass
+    def get_SubjectX(self,Subject,rank) :
+        abc = lib.final.api.search_with_subject(search=Subject.lower(),top=rank)
+        self.sublist = abc[0]
+        self.tb_article_rank.setRowCount(rank)
+        for i in range(rank) :
+            keys = []
+            for key in abc[0][i].keys() :
+                keys.append(key)
+            keyitem = keys[0]
+            self.tb_article_rank.setItem(i,0,QtWidgets.QTableWidgetItem(str(abc[0][i][keyitem].score)))
+            self.tb_article_rank.setItem(i,1,QtWidgets.QTableWidgetItem(str(keyitem)))
+        pass
+    def btn_fin_subjectQ_clicked(self) :
+        rank = 7
+        if(self.rbtn_rash.isChecked()) :
+            self.SubjectX = 'Rash'
+        elif(self.rbtn_skin.isChecked()) :
+            self.SubjectX = 'Skin'
+        elif(self.rbtn_urticaria.isChecked()) :
+            self.SubjectX = 'Urticaria'
+        elif(self.rbtn_face.isChecked()) :
+            self.SubjectX = 'Face'    
+        elif(self.rbtn_maculopapular.isChecked()) :
+            self.SubjectX = 'Maculopapular'    
+        elif(self.rbtn_organization.isChecked()) :
+            self.SubjectX = 'Organization'    
+        elif(self.rbtn_zoster.isChecked()) :
+            self.SubjectX = 'Zoster'    
+        elif(self.rbtn_erythema.isChecked()) :
+            self.SubjectX = 'Erythema'
+
+        self.get_SubjectX(self.SubjectX,rank)
+        print("Current Select : {}".format(self.SubjectX))
         pass
     #endregion
 
